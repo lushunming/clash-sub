@@ -1,0 +1,184 @@
+mixed-port: 1080
+mode: rule
+nameserver:
+    - 114.114.114.114 # 默认值
+    - 8.8.8.8 # 默认值
+    - tls://dns.rubyfish.cn:853 # DNS over TLS
+    - https://1.1.1.1/dns-query # DNS over HTTPS
+    - dhcp://en0 # 来自 dhcp 的 d
+# 代理
+proxy-providers:
+  Ruk1ng001:
+    type: http
+    url: "https://gh-proxy.com/raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml"
+    path: ./Proxy/Ruk1ng001
+    interval: 3600 
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+  NoMoreWalls:
+    type: http
+    url: "https://ghproxy.net/https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.meta.yml"
+    path: ./Proxy/NoMoreWalls
+    interval: 3600 
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+  ripaojiedian:
+    type: http
+    url: "https://raw.kkgithub.com/ripaojiedian/freenode/main/clash"
+    path: ./Proxy/ripaojiedian
+    interval: 3600 
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+  PuddinCat:
+    type: http
+    url: "https://ghfile.geekertao.top/https://raw.githubusercontent.com/PuddinCat/BestClash/main/proxies.yaml"
+    path: ./Proxy/PuddinCat
+    interval: 3600 
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+# 代理组
+proxy-groups:
+- name: 🚀 选择代理
+  proxies:
+  - 自动选择
+  - 负载均衡
+  - 手动选择
+  - 自动回退
+  type: select
+
+- name: 自动选择
+  type: url-test
+  use:
+  - Ruk1ng001
+  - NoMoreWalls
+  - ripaojiedian
+  - PuddinCat
+  url: 'http://cp.cloudflare.com/generate_204'
+  interval: 300
+
+  
+- name: 负载均衡
+  type: load-balance
+  use:
+  - Ruk1ng001
+  - NoMoreWalls
+  - ripaojiedian
+  - PuddinCat
+  url: 'https://www.gstatic.com/generate_204'
+  interval: 300
+
+
+- name: 自动回退
+  type: fallback
+  use:
+  - Ruk1ng001
+  - NoMoreWalls
+  - ripaojiedian
+  - PuddinCat
+  url: 'https://www.gstatic.com/generate_204'
+  interval: 300
+
+- name: 手动选择
+  type: url-test
+  use:
+  - Ruk1ng001
+  - NoMoreWalls
+  - ripaojiedian
+  - PuddinCat
+  url: 'https://www.gstatic.com/generate_204'
+  interval: 300
+
+# 规则列表
+rule-providers:
+  # 私网和保留地址
+  private:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/private.yaml"
+    interval: 86400
+  # 直连
+  direct: 
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/direct.yaml"
+    interval: 86400
+  # 代理
+  proxy: 
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/proxy.yaml"
+    interval: 86400
+  # 去广告
+  ad: 
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/ad.yaml"
+    interval: 86400
+  # Bing
+  newbing:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/newbing.yaml"
+    interval: 86400
+  # ChatGPT
+  chatgpt:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/chatgpt.yaml"
+    interval: 86400
+  # 巴哈姆特
+  bahamut:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/bahamut.yaml"
+    interval: 86400
+  # iTunes、Apple Music
+  itunes:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/itunes.yaml"
+    interval: 86400
+  # Spotify
+  spotify:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/spotify.yaml"
+    interval: 86400
+  # Reddit
+  reddit:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/reddit.yaml"
+    interval: 86400
+  # Telegram
+  telegram:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/azwhikaru/clash_rules/main/telegram.yaml"
+    interval: 86400
+  
+    
+# 规则类型,规则组,如何处理
+# 参见 https://clash.wiki/configuration/rules.html
+# 规则从上到下覆盖
+rules:
+  - DOMAIN-SUFFIX,google.com,自动选择
+  - DOMAIN-KEYWORD,google,自动选择
+  - DOMAIN,google.com,自动选择
+  - DOMAIN-SUFFIX,ad.com,REJECT
+  - SRC-IP-CIDR,192.168.1.201/32,DIRECT
+  # 用于 IP 规则 (GEOIP, IP-CIDR, IP-CIDR6) 的可选参数 "no-resolve"
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - GEOIP,CN,DIRECT
+  - DST-PORT,80,DIRECT
+  - SRC-PORT,7777,DIRECT
+ 
+  - MATCH,自动选择
