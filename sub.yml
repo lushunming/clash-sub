@@ -87,7 +87,7 @@ proxy-groups:
   interval: 300
 
 - name: 手动选择
-  type: url-test
+  type: select
   use:
   - Ruk1ng001
   - NoMoreWalls
