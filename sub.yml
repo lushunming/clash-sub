@@ -62,7 +62,7 @@ proxy-groups:
   - ripaojiedian
   - PuddinCat
   url: 'http://www.v2ex.com/generate_204'
-  interval: 300
+  interval: 1000
 
   
 - name: 负载均衡
