@@ -15,7 +15,7 @@ proxy-providers:
     interval: 3600 
     health-check:
       enable: true
-      url: http://www.gstatic.com/generate_204
+      url: http://www.google.com/generate_204
       interval: 300
   NoMoreWalls:
     type: http
@@ -24,7 +24,7 @@ proxy-providers:
     interval: 3600 
     health-check:
       enable: true
-      url: http://www.gstatic.com/generate_204
+      url: http://www.google.com/generate_204
       interval: 300
   ripaojiedian:
     type: http
@@ -33,7 +33,7 @@ proxy-providers:
     interval: 3600 
     health-check:
       enable: true
-      url: http://www.gstatic.com/generate_204
+      url: http://www.google.com/generate_204
       interval: 300
   PuddinCat:
     type: http
@@ -42,7 +42,7 @@ proxy-providers:
     interval: 3600 
     health-check:
       enable: true
-      url: http://www.gstatic.com/generate_204
+      url: http://www.google.com/generate_204
       interval: 300
 # 代理组
 proxy-groups:
@@ -61,7 +61,7 @@ proxy-groups:
   - NoMoreWalls
   - ripaojiedian
   - PuddinCat
-  url: 'http://cp.cloudflare.com/generate_204'
+  url: 'http://www.v2ex.com/generate_204'
   interval: 300
 
   
