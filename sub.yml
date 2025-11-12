@@ -49,6 +49,7 @@ proxy-groups:
 - name: 🚀 选择代理
   proxies:
   - 自动选择
+  - github
   - 负载均衡
   - 手动选择
   - 自动回退
@@ -64,6 +65,15 @@ proxy-groups:
   url: 'http://www.v2ex.com/generate_204'
   interval: 1000
 
+- name: github
+  type: url-test
+  use:
+  - Ruk1ng001
+  - NoMoreWalls
+  - ripaojiedian
+  - PuddinCat
+  url: 'https://github.com/'
+  interval: 1000
   
 - name: 负载均衡
   type: load-balance
