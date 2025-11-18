@@ -117,6 +117,9 @@ proxy-groups:
     use:
       - 订阅A
       - 订阅B
+      - 订阅c
+      - 订阅d
+
     filter: 香港|HK|Hong Kong
 
   - name: 日本
@@ -130,6 +133,8 @@ proxy-groups:
     use:
       - 订阅A
       - 订阅B
+      - 订阅c
+      - 订阅d
     filter: 日本|JP|Japan
 
   - name: 新加坡
@@ -143,6 +148,8 @@ proxy-groups:
     use:
       - 订阅A
       - 订阅B
+      - 订阅c
+      - 订阅d
     filter: 新加坡|狮城|SG|Singapore
 
   - name: 美国
@@ -156,6 +163,8 @@ proxy-groups:
     use:
       - 订阅A
       - 订阅B
+      - 订阅c
+      - 订阅d
     filter: 美国|US|United States
 
 #兜底策略组
