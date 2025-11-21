@@ -5,18 +5,6 @@ bind-address: '*'
 mode: rule
 log-level: info
 external-controller: '127.0.0.1:9090'
-dns:
-    enable: true
-    ipv6: false
-    prefer-h3: true
-    default-nameserver: [223.5.5.5, 119.29.29.29]
-    enhanced-mode: fake-ip
-    fake-ip-range: 198.18.0.1/16
-    use-hosts: true
-    nameserver: ['https://doh.pub/dns-query', 'https://208.67.222.222/dns-query']
-    proxy-server-nameserver: ['https://doh.pub/dns-query']
-    fallback: ['https://1.1.1.1/dns-query', 'tls://1.1.1.1:853', 'https://1.1.1.3/dns-query', 'tls://1.1.1.3:853', 'https://208.67.222.222/dns-query', 'https://208.67.220.220/dns-query']
-    fallback-filter: { geoip: false, ipcidr: [240.0.0.0/4, 0.0.0.0/32, 61.160.148.90/32, '3131:3131:3131:3131:3131:3131:3131:3131/128'], domain: [+.fmta.boo] }
 
 #订阅节点（自建节点和机场节点引用），更新订阅可以在clash UI代理下的代理集合手动更新
 #输入自己的订阅名称和订阅对应的存储在本地名字，ulr后输入订阅地址（别忘了修改第二部分策略组对应引用的订阅名称）
@@ -62,11 +50,14 @@ proxy-providers:
 proxy-groups:
 #PROXY为默认代理组，香港、日本、新加坡节点组负载均衡
   - name: PROXY
-    type: fallback
+    type: select
     proxies:
+      - auto
       - 香港
       - 日本
       - 新加坡
+      - 美国
+      
       
 #AI的分流都走这个，我一般选美国节点
   - name: AI
@@ -106,9 +97,22 @@ proxy-groups:
       - 美国
 
 #香港、日本、新加坡、美国  节点按地区策略分组，地区节点组按延迟自动选择
+ - name: auto
+    type: url-test
+    url: http://cp.cloudflare.com/generate_204
+    interval: 300
+    lazy: true
+    timeout: 5000
+    max-failed-times: 5
+    tolerance: 30
+    use:
+      - 订阅A
+      - 订阅B
+      - 订阅c
+      - 订阅d
   - name: 香港
     type: url-test
-    url: https://www.google.com/generate_204
+    url: http://cp.cloudflare.com/generate_204
     interval: 300
     lazy: true
     timeout: 5000
