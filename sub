@@ -105,7 +105,7 @@ proxy-groups:
     lazy: true
     timeout: 5000
     max-failed-times: 5
-    tolerance: 30
+    
     use:
       - 订阅A
       - 订阅B
@@ -118,7 +118,7 @@ proxy-groups:
     lazy: true
     timeout: 5000
     max-failed-times: 5
-    tolerance: 30
+    
     use:
       - 订阅A
       - 订阅B
@@ -134,7 +134,7 @@ proxy-groups:
     lazy: true
     timeout: 5000
     max-failed-times: 5
-    tolerance: 30
+    
     use:
       - 订阅A
       - 订阅B
@@ -149,7 +149,7 @@ proxy-groups:
     lazy: true
     timeout: 5000
     max-failed-times: 5
-    tolerance: 30
+    
     use:
       - 订阅A
       - 订阅B
@@ -164,7 +164,7 @@ proxy-groups:
     lazy: true
     timeout: 5000
     max-failed-times: 5
-    tolerance: 30
+    
     use:
       - 订阅A
       - 订阅B
