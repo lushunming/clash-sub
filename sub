@@ -56,6 +56,8 @@ proxy-groups:
       - 日本
       - 新加坡
       - 美国
+    url: http://cp.cloudflare.com/generate_204
+    interval: 300    
       
       
 #AI的分流都走这个，我一般选美国节点
