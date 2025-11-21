@@ -15,7 +15,7 @@ proxy-providers:
     url: https://gh-proxy.com/raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
     health-check:
       enable: true
-      url: https://www.google.com/generate_204
+      url: http://cp.cloudflare.com/generate_204
       interval: 300
 #  filter: 此处可以按需根据正则筛选节点
 
@@ -25,7 +25,7 @@ proxy-providers:
     url: https://ghproxy.net/https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.meta.yml
     health-check:
       enable: true
-      url: https://www.google.com/generate_204
+      url: http://cp.cloudflare.com/generate_204
       interval: 300
 
   订阅c:
@@ -34,7 +34,7 @@ proxy-providers:
     url: https://raw.kkgithub.com/ripaojiedian/freenode/main/clash
     health-check:
       enable: true
-      url: https://www.google.com/generate_204
+      url: http://cp.cloudflare.com/generate_204
       interval: 300
   订阅d:
     type: http
@@ -42,7 +42,7 @@ proxy-providers:
     url: https://ghfile.geekertao.top/https://raw.githubusercontent.com/PuddinCat/BestClash/main/proxies.yaml
     health-check:
       enable: true
-      url: https://www.google.com/generate_204
+      url: http://cp.cloudflare.com/generate_204
       interval: 300
 #策略组
 #我常用的AI、电报、YouTube分流对应的策略，香港、日本、新加坡、美国  按地区策略组
@@ -127,7 +127,7 @@ proxy-groups:
 
   - name: 日本
     type: url-test
-    url: https://www.google.com/generate_204
+    url: http://cp.cloudflare.com/generate_204
     interval: 300
     lazy: true
     timeout: 5000
@@ -142,7 +142,7 @@ proxy-groups:
 
   - name: 新加坡
     type: url-test
-    url: https://www.google.com/generate_204
+    url: http://cp.cloudflare.com/generate_204
     interval: 300
     lazy: true
     timeout: 5000
@@ -157,7 +157,7 @@ proxy-groups:
 
   - name: 美国
     type: url-test
-    url: https://www.google.com/generate_204
+    url: http://cp.cloudflare.com/generate_204
     interval: 300
     lazy: true
     timeout: 5000
