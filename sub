@@ -12,7 +12,7 @@ proxy-providers:
   订阅A:
     type: http
     path: ./profiles/proxies/订阅A.yaml
-    url: https://gh-proxy.com/raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
+    url: https://gh.llkk.cc/https:/raw.githubusercontent.com/acymz/AutoVPN/main/data/V2.txt
     health-check:
       enable: true
       url: http://cp.cloudflare.com/generate_204
@@ -22,7 +22,7 @@ proxy-providers:
   订阅B:
     type: http
     path: ./profiles/proxies/订阅B.yaml
-    url: https://ghproxy.net/https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.meta.yml
+    url: https://gh.llkk.cc/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
     health-check:
       enable: true
       url: http://cp.cloudflare.com/generate_204
@@ -31,7 +31,7 @@ proxy-providers:
   订阅c:
     type: http
     path: ./profiles/proxies/订阅c.yaml
-    url: https://raw.kkgithub.com/ripaojiedian/freenode/main/clash
+    url: https://gh.llkk.cc/https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity.yml
     health-check:
       enable: true
       url: http://cp.cloudflare.com/generate_204
