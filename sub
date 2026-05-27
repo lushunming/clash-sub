@@ -229,12 +229,14 @@ proxy-providers-general: &proxy-providers-general # 代理提供者通用配置
 
 proxy-providers:
    https://gh.idayer.com/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
+   https://hk.gh-proxy.org/https:/raw.githubusercontent.com/limitless-d/getnode/main/clash.yaml
   
 
 # ==================== 代理组 ====================
 use-all-proxy-providers: &use-all-proxy-providers # 代理组通用配置
   use:
     https://gh.idayer.com/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
+    https://hk.gh-proxy.org/https:/raw.githubusercontent.com/limitless-d/getnode/main/clash.yaml
 
 # 自动选择通用配置
 health-check-general: &health-check-general
