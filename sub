@@ -228,18 +228,29 @@ proxy-providers-general: &proxy-providers-general # 代理提供者通用配置
     #ip-version: dual # 可选dual/ipv4/ipv6/ipv4-prefer/ipv6-prefer，即优先v4或v6，仅v4或v6
 
 proxy-providers:
-   https://subconverters.com/sub?target=clash&url=%20%20%20https%3A%2F%2Fgh.idayer.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Fanaer%2FSub%2Frefs%2Fheads%2Fmain%2Fproxies.yaml%7C&insert=false&config=https%3A%2F%2Fraw.githubusercontent.com%2FACL4SSR%2FACL4SSR%2Fmaster%2FClash%2Fconfig%2FACL4SSR_Online_Full_NoAuto.ini&emoji=true&list=false&xudp=false&udp=false&tfo=false&expand=true&scv=false&fdn=false&new_name=true
-   # https://gh.idayer.com/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
-   # https://hk.gh-proxy.org/https:/raw.githubusercontent.com/limitless-d/getnode/main/clash.yaml
+  SUB00:
+    type: http
+    interval: 86400
+    url: "https://gh.idayer.com/https://raw.githubusercontent.com/anaer/Sub/refs/heads/main/proxies.yaml"
+    path: ./proxies/SUB00.yaml
+  SUB01:
+    type: http
+    interval: 86400
+    url: "https://hk.gh-proxy.org/https:/raw.githubusercontent.com/limitless-d/getnode/main/clash.yaml"
+    path: ./proxies/SUB01.yaml
+  SUB02:
+    type: http
+    interval: 86400
+    url: "https://gh.idayer.com/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml"
+    path: ./proxies/SUB02.yaml
   
 
 # ==================== 代理组 ====================
 use-all-proxy-providers: &use-all-proxy-providers # 代理组通用配置
   use:
-    https://subconverters.com/sub?target=clash&url=%20%20%20https%3A%2F%2Fgh.idayer.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Fanaer%2FSub%2Frefs%2Fheads%2Fmain%2Fproxies.yaml%7C&insert=false&config=https%3A%2F%2Fraw.githubusercontent.com%2FACL4SSR%2FACL4SSR%2Fmaster%2FClash%2Fconfig%2FACL4SSR_Online_Full_NoAuto.ini&emoji=true&list=false&xudp=false&udp=false&tfo=false&expand=true&scv=false&fdn=false&new_name=true
-    # https://gh.idayer.com/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
-    # https://hk.gh-proxy.org/https:/raw.githubusercontent.com/limitless-d/getnode/main/clash.yaml
-
+    - SUB00
+    - SUB01
+    - SUB02
 # 自动选择通用配置
 health-check-general: &health-check-general
   << : *use-all-proxy-providers # 引用嵌套必须全部都是锚点引用才可以嵌套
