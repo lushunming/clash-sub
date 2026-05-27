@@ -228,6 +228,7 @@ proxy-providers-general: &proxy-providers-general # 代理提供者通用配置
     #ip-version: dual # 可选dual/ipv4/ipv6/ipv4-prefer/ipv6-prefer，即优先v4或v6，仅v4或v6
 
 proxy-providers:
+   https://gh.idayer.com/https://raw.githubusercontent.com/anaer/Sub/refs/heads/main/proxies.yaml
    https://gh.idayer.com/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
    https://hk.gh-proxy.org/https:/raw.githubusercontent.com/limitless-d/getnode/main/clash.yaml
   
@@ -235,6 +236,7 @@ proxy-providers:
 # ==================== 代理组 ====================
 use-all-proxy-providers: &use-all-proxy-providers # 代理组通用配置
   use:
+    https://gh.idayer.com/https://raw.githubusercontent.com/anaer/Sub/refs/heads/main/proxies.yaml
     https://gh.idayer.com/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
     https://hk.gh-proxy.org/https:/raw.githubusercontent.com/limitless-d/getnode/main/clash.yaml
 
