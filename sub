@@ -1,330 +1,467 @@
-mixed-port: 7890
-allow-lan: true
-bind-address: '*'
-mode: rule
-log-level: info
-external-controller: '127.0.0.1:9090'
+# ███████╗██╗███████╗██╗  ██╗
+# ██╔════╝██║██╔════╝██║  ██║
+# █████╗  ██║███████╗███████║
+# ██╔══╝  ██║╚════██║██╔══██║
+# ██║     ██║███████║██║  ██║
+# ╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝
 
-#订阅节点（自建节点和机场节点引用），更新订阅可以在clash UI代理下的代理集合手动更新
-#输入自己的订阅名称和订阅对应的存储在本地名字，ulr后输入订阅地址（别忘了修改第二部分策略组对应引用的订阅名称）
-#可用正则剔除高倍节点和一些乱七八糟的节点（比如什么机场网址、套餐到期时间什么的）
+# 全文的配置顺序依照mihomo的官方文档排布，方便对照文档进行学习修改
+
+# ==================== 全局配置 ====================
+## 允许局域网
+allow-lan: true # 允许局域网连接
+bind-address: "*" # 绑定地址，仅允许其他设备通过这个地址访问，*为绑定所有地址
+lan-allowed-ips: # 允许连接的客户端IP，默认允许全部
+  - 0.0.0.0/0
+  - ::/0
+lan-disallowed-ips: # 禁止连接的 IP 地址段，黑名单优先级高于白名单，默认值为空
+  - ~
+
+## 用户验证
+authentication: # http(s)/socks/mixed 的用户验证，格式："user1:pass1"，不写则禁止全部用户
+  - ~
+skip-auth-prefixes: # 白名单，允许跳过用户验证的IP
+  - ~
+
+## 其他设置
+mode: rule # 运行模式，rule（规则）/ global（全局）/ direct（直连）
+log-level: warning # 内核日志级别
+ipv6: true # 是否接受ipv6流量
+## TCP-Keep-Alive
+keep-alive-interval: 15 # 发送心跳包的间隔，无回应则最多重发9次后判断链路关闭
+keep-alive-idle: 30 # 触发心跳包的链路无活动阈值，无活动后发送心跳包检测对端是否存活
+disable-keep-alive: false # 禁用 keep alive，即允许长链接一直存在，安卓端会强制设定为true
+## 其他设置
+find-process-mode: strict # 进程匹配模式（off:关闭，alwas:开启，strict自动），tun模式下无效，如果是openwrt中的透明代理，此功能用处不大，因为不知道客户端到底是什么进程
+
+## 外部控制（API）设置
+external-controller: "[::]:9090" # API面板监听地址[::]:9090表示所有
+secret: "hd54RIm0LiUpyu" #🔴API面板访问密钥
+external-ui: ui # API面板静态资源路径
+external-ui-name: zashboard # API面板名，配合路径拼接成路径，例如/ui/metacubexd
+external-ui-url: "https://v6.gh-proxy.org/https://github.com/Zephyruso/zashboard/releases/latest/download/dist-no-fonts.zip" # API面板下载地址
+
+## 缓存设置
+profile:
+  store-selected: true # 缓存 API面板 对策略组的选择
+  store-fake-ip: true # 缓存 fakeip 映射表
+# -------- Smart配置 --------
+  # 使用非smart内核时这些配置会被忽略，不会引起报错
+  smart-collector-size: 100 # 数据收集文件大小限制（MB），到达限制后不会计入新的数据，节点轮换太频繁可能需要手动删除重建
+lgbm-auto-update: true # 启用模型自动更新
+lgbm-update-interval: 72 # 模型更新间隔（小时）
+lgbm-url: "https://v6.gh-proxy.org/https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin" # 模型下载地址
+# -------- Smart配置 --------
+
+## 其他设置
+unified-delay: true # 统一延迟，计算RTT消除握手等协议带来的的差异，只比较节点本身的网络延迟
+tcp-concurrent: true # TCP并发，使用DNS返回的所有地址链接，取成功的第一个
+#interface-name: en0  # clash流量出站接口，即接口绑定
+#routing-mark: 6666  # 非linux无效，路由标记，为流量提供标记以供其他应用进行流量处理
+
+## GEO数据
+geodata-mode: true # GEOIP数据模式，false:mmdb，true:dat，dat兼容性更好
+geodata-loader: standard # GEO文件加载模式，默认memconservative（小内存设备模式，即分段加载geo数据而不是全部加载）
+geo-auto-update: true # GEO文件自动更新
+geo-update-interval: 168 # 更新间隔，小时
+geox-url:
+  # GEO数据库下载地址，内核会按需下载，未被使用的数据库不会被下载，采用metacube项目，支持的分类字段较为全面，修bug很快
+  geoip:
+    "https://v6.gh-proxy.org/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat"
+  geosite:
+    "https://v6.gh-proxy.org/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  mmdb:
+    "https://v6.gh-proxy.org/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
+  asn:
+    "https://v6.gh-proxy.org/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
+global-ua: clash.meta # 全局UA，默认为clash.meta
+etag-support: true # 资源下载的 ETag 支持，使重复资源不会重复下载
+
+
+
+# ==================== DNS ====================
+# 客户端发起网址A的DNS，到达mihomo的DNS模块，mihomo会使用下方的配置进行DNS
+# 根据Fakeip规则，给对应域名返回Fakeip或者交给dns模块返回真实IP
+# 客户端拿到IP后，再次对IP发起连接请求，此时请求会进入mihomo的规则匹配，根据匹配结果直连或者远端解析
+# 也就是说DNS解析实际上会发生两次，第一次的结果并不重要，第二次只要规则正确触发远程解析，绝不会污染和劫持
+# 但如果第一次拿到了0.0.0.0,127.0.0.1这样的无效IP，请求无法发给mihomo就会无法访问
+# 综上所述，配置DNS没有那么重要，只要保证首次解析不要得到0.0.0.0这样的错误IP即可
+# 但是如果一定要求访问国外域名DNS无泄漏，或者需要对国外进行分流，那么建议使用fakeip模式
+# 因为fakeip模式下，国外域名全部是fakeip并未进行本地解析，而且国外域名内网全部使用fakeip段，方便分流
+
+# 快速的DNS，不关心是否存在污染和劫持，只要快就好了（但如果上游DNS有问题，会将问题引入）
+#public-dns: &public-dns
+#  #- system # 系统DNS，但是实测在openwrt中不好用，或许仅适合安卓等系统
+#  - dhcp://eth1 # 软路由的wan口一般为最后一张网卡，eth0,eth1 双网口就是eth1
+#  - dhcp://wan # 硬路由的wan口网卡名一般为wan
+#  - 223.5.5.5 # 阿里主DNS
+
+# 加密的DNS，必须可以规避劫持，避免被解析为0.0.0.0等污染结果，但是不是国外的并不重要
+secure-dns: &secure-dns
+  - https://223.5.5.5/dns-query # 阿里主DNS，支持H3，不强制开启防止部分地区不支持h3
+  - https://223.6.6.6/dns-query # 阿里备DNS，支持H3，不强制开启防止部分地区不支持h3
+  - https://1.12.12.12/dns-query # DNSPod公共DNS，不支持H3
+  - https://120.53.53.53/dns-query # DNSPod公共DNS，不支持H3
+
+dns:
+  enable: true # 启用dns模块，否则采用系统DNS
+  cache-algorithm: arc # DNS缓存算法，lru（默认）性能开销低，被访问到就提前，超出容量则踢出队尾，适合固定访问有限网站；arc策略则是智能匹配，偶然查询的陌生网站不会踢掉经常访问的网站，但是性能开销更大，适合性能宽裕设备
+  prefer-h3: true # DoH若支持，则优先使用HTTP/3
+  listen: "[::]:1053" # DNS监听端口，支持udp,tcp
+  ipv6: true # 是否解析ipv6地址，否则返回空结果
+# -------- fakeip配置 --------
+  enhanced-mode: fake-ip # DNS处理模式：redir-host/fake-ip，fake-ip更快但可能引入问题（缓存fakeip后无法故障切换）
+  fake-ip-range: 198.18.0.1/16 # fakeip 的 IP 段，tun接口的默认 IPV4 地址 也使用此值作为参考
+  fake-ip-range6: fdfe:dcba:9876::1/64 # fakeip 的 IPv6 段
+  fake-ip-filter-mode: rule # 工作模式，blacklist/whitelist/rule，黑名单下，filter内容将使用redir-host模式解析
+  fake-ip-filter:
+    # fakeip规则列表，按照命中频率、优先级和包含关系进行排序
+    - GEOSITE,private,real-ip # 私有网络，直接返回真实IP，防止访问局域网设备进入内核处理
+    - GEOSITE,google,fake-ip # 谷歌部分域名有中国业务，被包含到cn中直连，出现商店下载问题，须指明Fakeip引导进入内核匹配规则
+    - RULE-SET,🪜Proxy-FISH,fake-ip # 个人收集的代理域名，包含GeoSite未分类或分类到cn的零散域名
+    - GEOSITE,category-ads-all,real-ip # 广告域名，交给redirect-host模块返回空结果
+    - GEOSITE,tracker,real-ip # tracker，包括pt
+    - GEOSITE,apple,real-ip # 苹果域名，配合双WAN分流可以避免长链接耗电问题
+    - GEOSITE,category-game-platforms-download,real-ip # 各类游戏平台下载域名，包括steam下载
+    - GEOSITE,category-proxy-tunnels,real-ip # 包括Tailscale在内的P2P打洞服务域名
+    - RULE-SET,🌐Direct-FISH,real-ip # 个人收集的直连域名，包含GeoSite未分类或分类到非cn的零散域名
+    - GEOSITE,cn,real-ip # 中国域名
+    - MATCH,fake-ip # 因cn集较小，因此采用未匹配的全部fakeip
+  #fake-ip-ttl: 600 # fakeip查询返回的TTL，非必要情况下请勿修改
+# -------- fakeip配置 --------
+  use-hosts: true # 查询配置文件中的 hosts，默认true
+  use-system-hosts: true # 查询系统的 hosts，默认true
+  respect-rules: false # DNS请求遵循rule规则代理，需先配置好 proxy-server-nameserver，否则出现鸡蛋问题，强烈不建议和perfer-h3一起使用，用处不大
+# -------- redir-host配置 --------
+  default-nameserver: *secure-dns # 用于解析DNS服务器的域名，可以加密但必须为IP
+  nameserver-policy: # 优先级高于nameserver，匹配完成之后再去匹配nameserver和fallback
+    "geosite:category-ads-all": rcode://success # 匹配广告域名，返回空结果
+  proxy-server-nameserver: *secure-dns # 用于解析代理节点的域名，不填则遵循namepolicy，nameserver和fallback
+  #proxy-server-nameserver-policy: # 效果和nameserver-policy，指定节点的域名解析规则，当且仅当proxy-server-nameserver不为空时生效
+  direct-nameserver: *secure-dns # 解析direct出口的域名，不填则遵循namepolicy，nameserver和fallback
+  direct-nameserver-follow-policy: false # direct出口域名是否遵循nameserver-policy，false则使用direct-nameserver
+  nameserver: *secure-dns # 兜底默认DNS组，未命中 nameserver-policy 时启用
+  #fallback: # 过时的配置，被使用时100%产生DNS泄露，已被 nameserver-policy 取代
+# --------- redir-host配置 --------
+
+# ==================== hosts配置 ====================
+#hosts: # 自定义hosts映射，可以在此处手动指定一些Fakeip地址以强制分流
+  #"mihomo.mihomo": 127.0.0.1
+
+# ==================== 域名嗅探 ====================
+sniffer: # 嗅探，获取SNI中的域名，使mihomo能够反解未经自己DNS的IP请求的域名，匹配域名规则
+  enable: false # 启用sniffer，除非mihomo的DNS不在第一级，否则无需启用
+#  force-dns-mapping: true # 对redir-host类型识别的流量进行强制嗅探
+#  parse-pure-ip: true # 对所有未获取到域名的流量进行强制嗅探
+#  override-destination: true # 是否使用嗅探结果作为实际访问，默认为 true
+#  sniff: # 需要嗅探的协议类型，仅支持 HTTP/TLS/QUIC
+#    TLS: # TLS协议
+#      ports: # 端口白名单，只针对下列端口嗅探
+#        - 443
+#        - 8443
+#    HTTP: # HTTP协议
+#      ports: # 端口白名单，只针对下列端口嗅探
+#        - 80
+#        - 8080-8880
+#    QUIC: # QUIC协议
+#      ports: # 端口白名单，只针对下列端口嗅探
+#        - 443
+#        - 8443
+#  force-domain: # 强制嗅探的域名
+#    - "+.netflix.com"
+#    - "+.nflxvideo.net"
+#    - "+.amazonaws.com"
+#    - "+.media.dssott.com"
+#  skip-domain: # 需要跳过嗅探的域名，主要解决部分站点sni字段非域名，导致嗅探结果异常的问题，如米家设备，也可针对使用内核进行DNS的域名节省开销（这些由内核解析的域名因为保存有对照表，无需嗅探）
+#    - "+.apple.com"
+#    - Mijia Cloud
+#    - dlg.io.mi.com
+#    - "+.oray.com"
+#    - "+.sunlogin.net"
+#    - "geosite:geolocation-cn"
+#    - "geosite:geolocation-!cn@cn"
+#  #skip-src-address: # 需要跳过嗅探的源地址
+#  #skip-dst-address: # 需要跳过嗅探的目的地址
+
+# ==================== 入栈端口 ====================
+mixed-port: 7890 # HTTP+Socks4混合，Win下的系统代理端口
+socks-port: 1080 # Socks5，代理端口
+port: 8080 # HTTP，代理端口
+redir-port: 7891 # 非linux无效，redir 透明代理端口
+tproxy-port: 7892 # 非linux无效，tproxy 透明代理端口
+
+# ==================== Tun ====================
+tun: # tun性能低开销大，除非必须否则不建议使用
+  enable: false # 启用Tun接口
+#  stack: mixed # TUN 堆栈模式,建议 mixed（TCP：system，UDP：Gvisor），对于Windows开启防火墙后需要手动放行内核，否则只能使用Gvisor
+#  device: utun0 # TUN 网卡名，MacOS 只能 utun 开头
+#  auto-route: false # 核心自动设置全局路由防火墙规则，会与插件的防火墙规则冲突，导致无法正常上网/代理
+#  auto-detect-interface: false # 核心自动选择流量的出接口（默认wan口），会与插件冲突
+#  dns-hijack: # dns 劫持，将匹配到的连接导入内部 dns 模块，不书写协议则默认 udp://
+#    - any:53
+#    - tcp://any:53
+#  mtu: 9000 # MTU
+#  gso: true # 通用分段卸载，仅支持Linux，提高性能
+#  gso-max-size: 65536 # 通用分段卸载包的最大长度
+#  exclude-package: # 安卓排除的包名
+#    - com.tencent.mobileqq # QQ
+#  #auto-redirect: true # 仅Linux有效，自动配置 iptables/nftables 以重定向 TCP 连接，需要auto-route: true，与插件设置冲突
+#  #strict-route: false # 将所有连接路由到 tun 来防止泄漏，但你的设备将无法其他设备被访问，严重拖慢Windows访问速度，可能造成虚拟机运行异常
+#  #endpoint-independent-nat: false # 独立于端点的 NAT，性能可能下降，不建议不需要时开启
+
+# ==================== 代理集合 ====================
+proxy-providers-general: &proxy-providers-general # 代理提供者通用配置
+  type: http # 类型，可选http/file/inline
+  interval: 86400 # 更新间隔，单位秒（86400=1天，259200=3天）一般垃圾机场建议1天
+  proxy: 🌐默认直连 # http类型更新时使用的代理组，不建议设置代理，如果你的订阅需要代理才能订阅，那先有鸡还是先有蛋？
+  size-limit: 0 # 文件大小限制，0为不限制
+  exclude-filter: "(?i)官网|每月刷新订阅|到期|https://|剩余流量" # 排除的节点名称
+  #override:
+    # 同名覆盖，一般采用机场自己给的参数，避免打开不支持的功能
+    #tfo: false # 启用TCP Fast Open，一般都不支持
+    #mptcp: false # 启用TCP Multi Path，一般都不支持
+    #udp: true # 启用UDP
+    #udp-over-tcp: false # 启用UDP over TCP
+    #skip-cert-verify: false # 跳过证书验证
+    #down: "50 Mbps" # 下行限速
+    #up: "10 Mbps" # 上行限速
+    #ip-version: dual # 可选dual/ipv4/ipv6/ipv4-prefer/ipv6-prefer，即优先v4或v6，仅v4或v6
+
 proxy-providers:
-  订阅A:
-    type: http
-    path: ./profiles/proxies/订阅A.yaml
-    url: https://gh.llkk.cc/https:/raw.githubusercontent.com/acymz/AutoVPN/main/data/V2.txt
-    health-check:
-      enable: true
-      url: http://cp.cloudflare.com/generate_204
-      interval: 300
-#  filter: 此处可以按需根据正则筛选节点
+   https://gh.idayer.com/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
+  
 
-  订阅B:
-    type: http
-    path: ./profiles/proxies/订阅B.yaml
-    url: https://gh.llkk.cc/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
-    health-check:
-      enable: true
-      url: http://cp.cloudflare.com/generate_204
-      interval: 300
+# ==================== 代理组 ====================
+use-all-proxy-providers: &use-all-proxy-providers # 代理组通用配置
+  use:
+    https://gh.idayer.com/https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
 
-  订阅c:
-    type: http
-    path: ./profiles/proxies/订阅c.yaml
-    url: https://gh.llkk.cc/https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity.yml
-    health-check:
-      enable: true
-      url: http://cp.cloudflare.com/generate_204
-      interval: 300
-  订阅d:
-    type: http
-    path: ./profiles/proxies/订阅d.yaml
-    url: https://ghfile.geekertao.top/https://raw.githubusercontent.com/PuddinCat/BestClash/main/proxies.yaml
-    health-check:
-      enable: true
-      url: http://cp.cloudflare.com/generate_204
-      interval: 300
-#策略组
-#我常用的AI、电报、YouTube分流对应的策略，香港、日本、新加坡、美国  按地区策略组
+# 自动选择通用配置
+health-check-general: &health-check-general
+  << : *use-all-proxy-providers # 引用嵌套必须全部都是锚点引用才可以嵌套
+  url: https://www.gstatic.com/generate_204
+  interval: 30 # 健康检查间隔
+  tolerance: 100 # 延迟容忍度，单位ms
+  lazy: false # 未选中当前组时不进行测试，会导致面板中不手动测试看不见延迟
+  timeout: 5000 # 健康检查超时，单位ms
+  max-failed-times: 5 # 失败次数，超过则执行一次强制健康检查
+# -------- Smart配置 --------
+  strategy: sticky-sessions # 负载均衡策略round-robin轮询，sticky-sessions粘性会话（默认）
+  policy-priority: "三毛:2" # 策略优先级配置> 1：提高优先级；< 1：降低优先级，默认权重为1
+  uselightgbm: true # 启用 LightGBM 模型预测
+  #collectdata: true # 启用数据收集用于模型训练，如果你要训练自己的模型，可以开启之后拿数据，否则不用开
+  sample-rate: 1 # 数据采样率（0-1）
+  #prefer-asn: true # 节点自动选择时，强制优先查询并基于节点的 ASN（自治系统编号）来进行决策，会导致本地解析，出现DNS泄露
+# -------- Smart配置 --------
+
+# 默认直连
+default-direct: &default-direct [DIRECT, 🟢智能选择（低倍节点）, 🟡智能选择（常规节点）, 🔴智能选择（高倍节点）, 🖐️手动切换, 🇭🇰香港节点, 🇨🇳台湾节点, 🇸🇬狮城节点, 🇯🇵日本节点, 🇺🇲美国节点]
+
+# 默认代理-低倍节点
+default-proxy-low: &default-proxy-low [🟢智能选择（低倍节点）, 🟡智能选择（常规节点）, 🔴智能选择（高倍节点）, 🖐️手动切换, 🇭🇰香港节点, 🇨🇳台湾节点, 🇸🇬狮城节点, 🇯🇵日本节点, 🇺🇲美国节点, DIRECT]
+
+# 默认代理-常规节点
+default-proxy-normal: &default-proxy-normal [🟡智能选择（常规节点）, 🟢智能选择（低倍节点）, 🔴智能选择（高倍节点）, 🖐️手动切换, 🇭🇰香港节点, 🇨🇳台湾节点, 🇸🇬狮城节点, 🇯🇵日本节点, 🇺🇲美国节点, DIRECT]
+
 proxy-groups:
-#PROXY为默认代理组，香港、日本、新加坡节点组负载均衡
-  - name: PROXY
+  - name: 🌐默认直连
+    type: select
+    proxies: *default-direct
+
+  - name: 🐟漏网之鱼
+    type: select
+    proxies: *default-direct
+
+  - name: ⬇️大文件代理
+    type: select
+    proxies: *default-proxy-low
+
+  - name: 🧱GFW
+    type: select
+    proxies: *default-proxy-normal
+    icon: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Icons/GFW.png
+
+  - name: 🤖国外AI
     type: select
     proxies:
-      - auto
-      - 香港
-      - 日本
-      - 新加坡
-      - 美国
-    url: http://cp.cloudflare.com/generate_204
-    interval: 300    
-      
-      
-#AI的分流都走这个，我一般选美国节点
-  - name: AI
-    type: select
-    proxies:
-      - 美国
-      - 新加坡
-
-  - name: 电报
-    type: select
-    proxies:
-      - PROXY
-      - 香港
-      - 新加坡
-
-  - name: Youtube
-    type: select
-    proxies:
-      - PROXY
-      - 香港
-      - 新加坡
-      - 日本
-      - 美国
-
-  - name: Google
-    type: select
-    proxies:
-      - PROXY
-      - 香港
-      - 美国
-
-  - name: 微软
-    type: select
-    proxies:
-      - PROXY
-      - 香港
-      - 美国
-
-#香港、日本、新加坡、美国  节点按地区策略分组，地区节点组按延迟自动选择
-  - name: auto
-    type: url-test
-    url: http://cp.cloudflare.com/generate_204
-    interval: 300
-    lazy: true
-    timeout: 5000
-    max-failed-times: 5
-    
-    use:
-      - 订阅A
-      - 订阅B
-      - 订阅c
-      - 订阅d
-  - name: 香港
-    type: url-test
-    url: http://cp.cloudflare.com/generate_204
-    interval: 300
-    lazy: true
-    timeout: 5000
-    max-failed-times: 5
-    
-    use:
-      - 订阅A
-      - 订阅B
-      - 订阅c
-      - 订阅d
-
-    filter: 香港|HK|Hong Kong
-
-  - name: 日本
-    type: url-test
-    url: http://cp.cloudflare.com/generate_204
-    interval: 300
-    lazy: true
-    timeout: 5000
-    max-failed-times: 5
-    
-    use:
-      - 订阅A
-      - 订阅B
-      - 订阅c
-      - 订阅d
-    filter: 日本|JP|Japan
-
-  - name: 新加坡
-    type: url-test
-    url: http://cp.cloudflare.com/generate_204
-    interval: 300
-    lazy: true
-    timeout: 5000
-    max-failed-times: 5
-    
-    use:
-      - 订阅A
-      - 订阅B
-      - 订阅c
-      - 订阅d
-    filter: 新加坡|狮城|SG|Singapore
-
-  - name: 美国
-    type: url-test
-    url: http://cp.cloudflare.com/generate_204
-    interval: 300
-    lazy: true
-    timeout: 5000
-    max-failed-times: 5
-    
-    use:
-      - 订阅A
-      - 订阅B
-      - 订阅c
-      - 订阅d
-    filter: 美国|US|United States
-
-#兜底策略组
-  - name: 终则
-    type: select
-    proxies:
-      - PROXY
+      - 🇨🇳台湾节点
+      - 🟢智能选择（低倍节点）
+      - 🟡智能选择（常规节点）
+      - 🔴智能选择（高倍节点）
+      - 🖐️手动切换
+      - 🇭🇰香港节点
+      - 🇨🇳台湾节点
+      - 🇸🇬狮城节点
+      - 🇯🇵日本节点
+      - 🇺🇲美国节点
       - DIRECT
 
+  - name: ✈️Telegram
+    type: select
+    proxies: *default-proxy-low
+    icon: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Icons/Telegram.png
 
-#规则集
+  - name: 📺Youtube
+    type: select
+    proxies:
+      - 🇭🇰香港节点
+      - 🟢智能选择（低倍节点）
+      - 🟡智能选择（常规节点）
+      - 🔴智能选择（高倍节点）
+      - 🖐️手动切换
+      - 🇭🇰香港节点
+      - 🇨🇳台湾节点
+      - 🇸🇬狮城节点
+      - 🇯🇵日本节点
+      - 🇺🇲美国节点
+      - DIRECT
+    icon: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Icons/Youtube.png
+
+  - name: 📺巴哈姆特
+    type: select
+    proxies:
+      - 🇭🇰香港节点
+      - 🇨🇳台湾节点
+      - DIRECT
+    icon: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Icons/巴哈姆特.png
+
+  - name: 🎮Steam
+    type: select
+    proxies: *default-direct
+    icon: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Icons/Steam.png
+
+  - name: ☁️微软云盘
+    type: select
+    proxies: *default-direct
+    icon: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Icons/onedrive.png
+
+  - name: Ⓜ️微软服务
+    type: select
+    proxies: *default-direct
+    icon: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Icons/Microsoft.png
+
+  - name: 🔐PT网站
+    type: select
+    proxies: *default-proxy-normal
+    icon: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Icons/PT.png
+
+  - name: 🟢智能选择（低倍节点）
+    type: smart
+    filter: "\\[0\\.\\d+\\]|0\\.\\d+([倍xX])"
+    <<: *health-check-general
+
+  - name: 🟡智能选择（常规节点）
+    type: smart
+    filter:
+      "(?i)港|HK|hk|HongKong|HongKong|hongkong|台|新北|彰化|TW|Taiwan|日本|川日|东京|大阪|泉\
+      日|埼玉|沪日|深日|JP|Japan|新加坡|坡|狮城|SG|Singapore|美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|\
+      洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|US|United States|韩|KR|Korea|澳|AU|Australia"
+    exclude-filter: "\\[(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)\\]|(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)([倍xX])"
+    <<: *health-check-general
+
+  - name: 🔴智能选择（高倍节点）
+    type: smart
+    filter: "\\[(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)\\]|(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)([倍xX])"
+    exclude-filter: "\\[0\\.\\d+\\]|0\\.\\d+([倍xX])"
+    <<: *health-check-general
+
+  - name: 🖐️手动切换
+    type: select
+    <<: *use-all-proxy-providers
+
+  - name: 🇭🇰香港节点
+    type: smart
+    <<: *health-check-general
+    filter: "港|HK|hk|Hong Kong|HongKong|hongkong"
+    exclude-filter: "\\[(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)\\]|(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)([倍xX])"
+
+  - name: 🇯🇵日本节点
+    type: smart
+    <<: *health-check-general
+    filter: "日本|川日|东京|大阪|泉日|埼玉|沪日|深日|JP|Japan"
+    exclude-filter: "\\[(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)\\]|(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)([倍xX])"
+
+  - name: 🇺🇲美国节点
+    type: smart
+    <<: *health-check-general
+    filter: "美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|US|United States"
+    exclude-filter: "\\[(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)\\]|(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)([倍xX])"
+
+  - name: 🇨🇳台湾节点
+    type: smart
+    <<: *health-check-general
+    filter: "台|新北|彰化|TW|Taiwan"
+    exclude-filter: "\\[(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)\\]|(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)([倍xX])"
+
+  - name: 🇸🇬狮城节点
+    type: smart
+    <<: *health-check-general
+    filter: "新加坡|坡|狮城|SG|Singapore"
+    exclude-filter: "\\[(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)\\]|(1\\.[1-9]\\d*|[2-9](\\.\\d+)?|[1-9]\\d+(\\.\\d+)?)([倍xX])"
+
+# ==================== 规则提供者 ====================
+rule-providers-general: &rule-providers-general
+  type: http
+  behavior: classical
+  interval: 86400
+
 rule-providers:
-  reject:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt
-    path: ./ruleset/reject.yaml
-    interval: 86400
-  youtube:
-    type: http
-    behavior: classical
-    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTube/YouTube.yaml
-    path: ./ruleset/youtube.yaml
-    interval: 86400
+  🪜Proxy-FISH:
+    <<: *rule-providers-general
+    url: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Ruleset/🪜Proxy-FISH.yaml
+    path: ./providers/rule/rule-provider_🪜Proxy-FISH.yaml
 
-  OpenAI:
-    type: http
-    behavior: classical
-    url: https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/OpenAI/OpenAI.yaml
-    path: ./ruleset/OpenAI.yaml
-    interval: 86400
-  Claude:
-    type: http
-    behavior: classical
-    url: https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Claude/Claude.yaml
-    path: ./ruleset/Claude.yaml
-    interval: 86400
-  gemini:
-    type: http
-    behavior: classical
-    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Gemini/Gemini.yaml
-    path: ./ruleset/gemini.yaml
-    interval: 86400
-  icloud:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt
-    path: ./ruleset/icloud.yaml
-    interval: 86400
-  apple:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt
-    path: ./ruleset/apple.yaml
-    interval: 86400
-  microsoft:
-    type: http
-    behavior: classical
-    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Microsoft/Microsoft.yaml
-    path: ./ruleset/microsoft.yaml
-    interval: 86400
-  google:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt
-    path: ./ruleset/google.yaml
-    interval: 86400
-  proxy:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt
-    path: ./ruleset/proxy.yaml
-    interval: 86400
-  direct:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt
-    path: ./ruleset/direct.yaml
-    interval: 86400
-  private:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt
-    path: ./ruleset/private.yaml
-    interval: 86400
-  gfw:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt
-    path: ./ruleset/gfw.yaml
-    interval: 86400
-  tld-not-cn:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt
-    path: ./ruleset/tld-not-cn.yaml
-    interval: 86400
-  telegramcidr:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt
-    path: ./ruleset/telegramcidr.yaml
-    interval: 86400
-  cncidr:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt
-    path: ./ruleset/cncidr.yaml
-    interval: 86400
-  lancidr:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt
-    path: ./ruleset/lancidr.yaml
-    interval: 86400
-  applications:
-    type: http
-    behavior: classical
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt
-    path: ./ruleset/applications.yaml
-    interval: 86400
+  🌐Direct-FISH:
+    <<: *rule-providers-general
+    url: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Ruleset/🌐Direct-FISH.yaml
+    path: ./providers/rule/rule-provider_🌐Direct-FISH.yaml
 
-#指定分流规则所使用的策略组
+  ⬇️Download-FISH:
+    <<: *rule-providers-general
+    url: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Ruleset/⬇️Download-FISH.yaml
+    path: ./providers/rule/rule-provider_⬇️Download-FISH.yaml
+
+  🔐PT-Web-FISH:
+    <<: *rule-providers-general
+    url: https://raw.githubusercontent.com/refined-fish/clash_rule_fish/refs/heads/main/Ruleset/🔐PT-Web-FISH.yaml
+    path: ./providers/rule/rule-provider_🔐PT-Web-FISH.yaml
+
+# ==================== 路由规则 ====================
 rules:
-#AI分流,补充的一些
-  - DOMAIN-SUFFIX,perplexity.ai,AI
-  - DOMAIN,aistudio.google.com,AI
-  - DOMAIN-SUFFIX,spark.ai,AI
+  #### 对于必须直连者直接使用direct写死，其他尽可能使用代理组以方便面板控制以及切换测试
+  #### 任何涉及到IP或者可能涉及到IP的规则，必须添加no-reslove防止本地DNS解析的发生
+  # 禁用所有代理的QUIC，防止速度不佳和IP泄露，不包括国内网站
+  - AND,((DST-PORT,443),(NETWORK,UDP),(NOT,((GEOSITE,cn)))),REJECT # 禁用域名的QUIC，防止速度不佳和IP泄露
+  - AND,((DST-PORT,443),(NETWORK,UDP),(NOT,((GEOIP,cn)))),REJECT # 禁用IP的QUIC，防止速度不佳和IP泄露
 
-#steam下载分流
-  - DOMAIN,steamcdn-a.akamaihd.net,DIRECT
-  - DOMAIN-SUFFIX,steamserver.net,DIRECT
-  - DOMAIN,lancache.steamcontent.com,DIRECT
+  # FISH自定义规则块
+  - RULE-SET,🪜Proxy-FISH,🧱GFW # FISH自定义代理
+  - RULE-SET,🌐Direct-FISH,🌐默认直连 # FISH自定义直连
+  - RULE-SET,⬇️Download-FISH,⬇️大文件代理 # FISH自定义大文件代理
 
-#规则集指定策略组
-  - RULE-SET,applications,DIRECT
-  - DOMAIN,clash.razord.top,DIRECT
-  - DOMAIN,yacd.haishan.me,DIRECT
-  - RULE-SET,private,DIRECT
-  - RULE-SET,reject,REJECT
-  - RULE-SET,youtube,Youtube
-  - RULE-SET,microsoft,微软
-  - RULE-SET,OpenAI,AI
-  - RULE-SET,Claude,AI
-  - RULE-SET,gemini,AI
-  - RULE-SET,icloud,DIRECT
-  - RULE-SET,apple,DIRECT
-  - RULE-SET,google,Google
-  - RULE-SET,proxy,PROXY
-  - RULE-SET,direct,DIRECT
-  - RULE-SET,lancidr,DIRECT
-  - RULE-SET,cncidr,DIRECT
-  - RULE-SET,telegramcidr,电报
-  - RULE-SET,tld-not-cn,PROXY
-  - RULE-SET,gfw,PROXY
-  - GEOIP,LAN,DIRECT
-  - GEOIP,CN,DIRECT
-  - MATCH,终则
+  #### 代理规则块，按照使用频率/包含关系排序
+  # AI相关
+  - GEOSITE,category-ai-!cn,🤖国外AI # 国外AI服务
+  - DOMAIN,www.google.com,🤖国外AI # Gemini会因此判定访问IP，不一致时触发风控
+  # telegram相关
+  - GEOSITE,telegram,✈️Telegram # Telegram服务
+  - GEOIP,telegram,✈️Telegram,no-resolve # Telegram服务IP
+  # 影视相关
+  - GEOSITE,tmdb,🧱GFW # TMDB服务，影视刮削，直连访问缓慢经常失败
+  - GEOSITE,youtube,📺Youtube # Youtube服务
+  - GEOSITE,bahamut,📺巴哈姆特 # 巴哈姆特服务
+  # 其他
+  - RULE-SET,🔐PT-Web-FISH,🔐PT网站 # PT网页多用cloudFlare，污染严重故代理，需注意有的PT站网页域名也是tracker！
+  - GEOSITE,tracker,🌐默认直连 # 需要放在PT-Web规则之后，PT tracker，必须直连，否则会代理上传下载
+
+  #### 兜底规则块，一般精细的分流规则应在其上
+  - GEOSITE,gfw,🧱GFW # GFW兜底
+  - GEOSITE,onedrive,☁️微软云盘 # 微软云盘，放于微软服务前是因为可能特定情况需要代理
+  - GEOSITE,microsoft,Ⓜ️微软服务 # 微软服务，放于GFW后是因为github等在GFW中需要代理
+  - GEOSITE,steam,🎮Steam # Steam，默认直连，换区时修改此处，放于GFW之后是因创意工坊需始终代理
+  # 私有地址绕过块
+  - GEOSITE,private,🌐默认直连 # 私有地址直连
+  - GEOSITE,cn,🌐默认直连 # 中国域名
+  - GEOIP,private,🌐默认直连,no-resolve # 私有地址直连
+  - GEOIP,cn,🌐默认直连,no-resolve # 中国IP
+  - MATCH,🐟漏网之鱼 # 漏网之鱼
