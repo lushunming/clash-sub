@@ -1,0 +1,99 @@
+# ---------------------------------------------------
+# 基础配置
+# ---------------------------------------------------
+port: 7890
+socks-port: 7891
+allow-lan: true
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+ 
+# DNS 配置 (建议使用)
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  nameserver:
+    - 114.114.114.114
+    - 223.5.5.5
+    - tls://8.8.4.4:853
+ 
+# ---------------------------------------------------
+# 代理集合 (Proxy Providers)
+# ---------------------------------------------------
+proxy-providers:
+  # 机场中转节点 (中转)
+  airport-proxies:
+    type: http
+    url: "https://gh.idayer.com/https://raw.githubusercontent.com/anaer/Sub/refs/heads/main/proxies.yaml"  # <<< 务必替换
+    path: ./providers/airport.yaml
+    interval: 3600
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+  
+  # 自有落地节点 (落地)
+  landing-proxies:
+    type: http
+    url: "https://hk.gh-proxy.org/https:/raw.githubusercontent.com/limitless-d/getnode/main/clash.yaml"  # <<< 务必替换
+    path: ./providers/landing.yaml
+    interval: 3600
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+ 
+# ---------------------------------------------------
+# 策略组定义
+# ---------------------------------------------------
+proxy-groups:
+  # 1. 核心组: 链式代理 (顺序：中转 -> 落地)
+  - name: " 链式-Relay"
+    type: relay          # <<< 关键修正
+    proxies:
+      - " 中转-Select" 
+      - " 落地-Select"
+      
+  # 2. 中转节点选择组 (从机场订阅中选一个作为跳板)
+  - name: " 中转-Select"
+    type: select
+    use:
+      - airport-proxies
+    # 可选：如果想自动选择最快的机场节点
+    # type: url-test
+    # url: http://www.gstatic.com/generate_204
+    # interval: 300
+      
+  # 3. 落地节点选择组 (从落地订阅中选一个作为出口)
+  - name: " 落地-Select"
+    type: select
+    use:
+      - landing-proxies
+      
+  # 4. 主策略组 (提供选项给用户)
+  - name: " 主节点"
+    type: select
+    proxies:
+      - " 链式-Relay"    # 默认选项：走链式代理
+      - " 落地-Select"   # 备选：直连落地节点
+      - " 中转-Select"   # 备选：直连中转节点
+      - DIRECT
+ 
+# ---------------------------------------------------
+# 规则 (Rules)
+# ---------------------------------------------------
+rules:
+  # 局域网直连
+  - GEOIP,PRIVATE,DIRECT 
+  
+  # 广告/恶意拦截
+  - DOMAIN-KEYWORD,ad,REJECT
+  - DOMAIN-SUFFIX,googlesyndication.com,REJECT
+ 
+  # 国内流量直连
+  - GEOSITE,cn,DIRECT
+  - GEOIP,CN,DIRECT
+  
+  # 兜底规则：所有剩余流量走主策略组
+  - MATCH, 主节点
